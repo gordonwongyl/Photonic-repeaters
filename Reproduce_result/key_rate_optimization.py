@@ -49,8 +49,12 @@ class Routine:
         return -self.key_rate_unpack(solution)
     
     def optimized_key_rate_wrt_m(self, branch_param, m0):
-        res = minimize_scalar(self.negative_key_rate_given_m, bounds=(max(m0-500, 0.), min(m0+500, 2000.)), args=tuple(branch_param), method="Bounded")
-        return float(-res.fun), res.x
+        branch_param = tuple(branch_param)
+        if branch_param not in self.lookup_for_m_optimization.keys():
+            res = minimize_scalar(self.negative_key_rate_given_m, bounds=(max(m0-800, 0.), min(m0+800, 2000.)), args=branch_param, method="Bounded")
+            self.lookup_for_m_optimization[branch_param] = float(-res.fun), res.x 
+        return self.lookup_for_m_optimization[branch_param]
+
     
     def on_gen(self, ga_instance:pygad.GA):
         if int(ga_instance.generations_completed) % 2 == 0:
@@ -167,18 +171,18 @@ if __name__ == "__main__":
     GAMMA = np.array([2e9, 100e9, 170e6, 100e9]) * 2 * np.pi
     T_SPIN_COHERENCE = [13e-3, 4e-6, 1., 1.]
 
-    rout = tgs_f_routine(1000e3, GAMMA[0], T_SPIN_COHERENCE[0])
-    rout = rgs_a_routine(1000e3, GAMMA[0], T_SPIN_COHERENCE[0])
+    rout = tgs_a_routine(1000e3, GAMMA[0], T_SPIN_COHERENCE[0])
+    # rout = rgs_a_routine(1000e3, GAMMA[0], T_SPIN_COHERENCE[0])
     num_generations = 20
     num_parents_mating = 4
 
     fitness_function = rout.fitness_function_GA
 
-    sol_per_pop = 20 # number of solutions within the population (initially)
+    sol_per_pop = 60 # number of solutions within the population (initially)
     num_genes = 4 # the function inputs
     gene_type = [int, int, int, float] # input type
     gene_space = [range(1, 11), range(1, 30), range(1, 30), {"low": 1., "high": 2000.}]  # specify the possible values for each gene
-    gene_space = [range(1, 30), range(1, 20), range(1, 50), {"low": 1., "high": 2000.}]  # specify the possible values for each gene
+    # gene_space = [range(1, 30), range(1, 20), range(1, 50), {"low": 1., "high": 2000.}]  # specify the possible values for each gene
 
     init_range_low = 1
     init_range_high = 10
