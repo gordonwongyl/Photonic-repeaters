@@ -130,6 +130,8 @@ class Tree:
 
     # Number of qubits from depth i to j 
     def num_qubits(self, start: int, end: int) -> int:
+        if start == 0 and end == 0:
+            return 0
         return np.sum([np.product(self.b[0:i]) for i in range(start, end+1)])
     
 
@@ -327,3 +329,7 @@ def effective_key_rate(tree: Tree, time: Time, error: Error, M: int, n: int, L: 
     r = key_rate(fidelity)  
     # print("key_rate:", r)
     return r*tree.P_succ**(M+1)/tree.T_tree(time)/M/n*L/L_ATT
+
+if __name__=='__main__':
+    tree = Tree_ancilla([2,2,3], miu=Miu(0., 0., 0., 0., miu_set=0.1))
+    print(tree.R)
